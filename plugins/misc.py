@@ -162,7 +162,7 @@ async def imdb_callback(bot: Client, quer_y: CallbackQuery):
             [
                 InlineKeyboardButton(
                     text=f"Owner",
-                    url="https://t.me/Unavailable4allTime"
+                    url="https://t.me/iam_digin"
                 )
             ],
         ]
