@@ -123,7 +123,7 @@ async def advantage_spoll_choker(bot, query):
         k = (movie, files, offset, total_results)
         await auto_filter(bot, query, k)
     else:
-        k = await query.message.edit(f'⚠️ Hey, {query.from_user.first_name}! താങ്കൾ ചോദിച്ച സിനിമ എന്റെ ഡാറ്റാബേസിൽ ഇല്ല, മുതലാളിയോട് ചോദിച്ചു നോക്കു😣 ⚠️')
+        k = await query.message.edit(f'⚠️ Hey, {query.from_user.first_name}! YOUR REQUESTED MOVIE IS NOT ON THE DATABASE ASK THE OWNER⚠️')
         await asyncio.sleep(10)
         await k.delete()
     
@@ -348,11 +348,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f"{files.file_name}"
         buttons = [
             [
-                InlineKeyboardButton('OWNER', url='https://t.me/Unavailable4allTime'),
-                InlineKeyboardButton('NEW MOVIES', url='https://t.me/Team_NGC')
+                InlineKeyboardButton('OWNER', url='https://t.me/iam_digin'),
+                InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums')
             ],
             [
-                InlineKeyboardButton('SERIES CHANNEL', url=f'https://t.me/NGCseries1')
+                InlineKeyboardButton('SERIES ZONE, url=f'https://t.me/vibeflixseries')
             ]
             ]
             
@@ -380,7 +380,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("checksub"):
         if AUTH_CHANNEL and not await is_subscribed(client, query):
-            await query.answer(f"Hey, {query.from_user.first_name}! മോനെ ആദ്യം ആ ചാനലിൽ ജോയിൻ ആക്, എന്നിട്ട് ഇതിൽ വന്നു ഞെക്ക്😣",show_alert=True)
+            await query.answer(f"Hey, {query.from_user.first_name}! JOIN THE CHANNEL FIRST THEN CLICK THE BUTTON",show_alert=True)
             return
         ident, file_id = query.data.split("#")
         files_ = await get_file_details(file_id)
@@ -400,11 +400,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f"{title}"
         buttons = [
             [
-                InlineKeyboardButton('OWNER', url='https://t.me/Unavailable4allTime'),
-                InlineKeyboardButton('NEW MOVIES', url='https://t.me/Team_NGC')
+                InlineKeyboardButton('OWNER', url='https://t.me/iam_digin'),
+                InlineKeyboardButton('NEW RELEASES', url=' https://t.me/vibeflix_nums')
             ],
             [
-                InlineKeyboardButton('SERIES CHANNEL', url=f'https://t.me/NGCseries1')
+                InlineKeyboardButton('SERIES ZONE', url=f'https://t.me/vibeflixseries')
             ]
             ]
         await query.answer()
@@ -419,15 +419,15 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await query.answer()
     elif query.data == "start":
         buttons = [[
-            InlineKeyboardButton('𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™', url=f'https://t.me/newgen_cinemazzz')
+            InlineKeyboardButton('𝙑𝙄𝘽𝙀𝙁𝙇𝙄𝙓', url=f'https://t.me/vibeflix_request')
             ],[
             InlineKeyboardButton('HELP', callback_data='help'),
             InlineKeyboardButton('ABOUT', callback_data='about')
             ],[
             InlineKeyboardButton('INLINE MODE', switch_inline_query_current_chat='')
             ],[
-            InlineKeyboardButton('NEW MOVIES', url='https://t.me/ngc_new_database_1'),
-            InlineKeyboardButton('OWNER', url='https://t.me/Unavailable4allTime')
+            InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums'),
+            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
             ],[
             InlineKeyboardButton('✗CLOSE THIS MENU✗', callback_data='close_data')
         ]]
@@ -857,7 +857,7 @@ async def auto_filter(client, msg, spoll=False):
             **locals()
         )
     else:
-        cap = f"<b>🎬 Title:</b> {search}\n</b>\n<b><a href='https://t.me/ngc_new_database_1'>◆NEW MOVIES◆</a></b>\n\n<b>✍️ Note:</b> <s>🔘ഈ മെസ്സേജ് 10 മിനുട്ട് വരെയെ ഗ്രൂപ്പിൽ കാണുകയുള്ളൂ🔘</s>"
+        cap = f"<b>🎬 Title:</b> {search}\n</b>\n<b><a href='https://t.me/vibeflix_nums'>◆NEW RELEASES◆</a></b>\n\n<b>✍️ Note:</b> <s>▫️THIS MESSAGE IS ONLY SEE IN 10 MINUTES ON THIS GROUP▫️</s>"
     if imdb and imdb.get('poster'):
         try:
             hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
