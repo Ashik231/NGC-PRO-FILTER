@@ -3,16 +3,16 @@ class Script(object):
 
 My Official Name is <a href=https://t.me/{}>{}</a>!
 
-<b>എനിക്ക് നിങ്ങൾക്ക് സിനിമകൾ തരാൻ കഴിയും, എന്നെ @newgen_cinemazzz എന്ന ഗ്രൂപ്പിൽ പ്രവർത്തിക്കാൻ വേണ്ടി മാത്രമാണ് ഉണ്ടാക്കിയിരിക്കുന്നത്☺️ :)
+<b>I CAN GIVE YOU MOVIES,I AM WORKING FOR THIS GROUP @vibeflix_request only☺️ :)
 
-ഇതാണ് എന്റെ മുതലാളി➡️@Unavailable4allTime </b>"""
+ഇതാണ് MY BOSS➡️@iam_digin</b>"""
 
     HELP_TXT = """Hey {}
 
 <b>Here Is The Help For My Commands.</b>"""
 
     ABOUT_TXT = """<b>➥ My name: {}
-➥ Creator: ☫𝐴𝑆𝐻𝐼𝐾彡
+➥ Creator: digin
 ➥ Library: Pyrogram
 ➥ Language: Python 𝟹
 ➥ Data Base: MongoDB
@@ -21,13 +21,13 @@ My Official Name is <a href=https://t.me/{}>{}</a>!
 
     SOURCE_TXT = """<b>Source:</b>
 IMDb is a Open source project.
-Source: <a href='https://github.com/Ashik231/ngc_muthmani'>GitHub - Click here 👈</a>
+Source: <a href='https://github.com/VIBEFLiX/ngc_muthmani'>GitHub - Click here 👈</a>
 
 <b>GROUP</b>
-- <a href='https://t.me/newgen_cinemazzz'>𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™</a>
+- <a href='https://t.me/vibeflix_request'>𝙑𝙄𝘽𝙀𝙁𝙇𝙄𝙓</a>
 
 <b>ADMIN</b>
-- <a href='https://t.me/Unavailable4allTime'>OWNER</a>"""
+- <a href='https://t.me/iam_digin'>OWNER</a>"""
 
     MANUALFILTER_TXT = """Help: <b>Filters</b>
 
@@ -220,10 +220,10 @@ This module only works for my admins
 <b>Used Storage:</b> <code>{}</code> MiB
 <b>Free Storage:</b> <code>{}</code> MiB"""
 
-    FORCESUB_TXT = """**ഇതൊന്നു വായിക്കൂ📄**
+    FORCESUB_TXT = """*READ THIS📄**
 
-__🗣 താങ്കൾ നമ്മുടെ ഗ്രൂപ്പിൽ നിന്നു select ചെയ്ത മൂവി താങ്കൾക്ക് ലഭിക്കണമെങ്കിൽ, താങ്കൾ നമ്മുടെ New Movies📌 എന്ന ചാനലിൽ ജോയിൻ ചെയ്യണം. അതിനു ശേഷം മാത്രമേ താങ്കൾക്ക് മൂവി ഞാൻ തരോള്😁. മുതലാളിയുടെ കല്പനകൾ😅__
-
+__🗣 IF YOU WANT TO GET THE FILE SUBSCRIBE TO NEW RELEASES CHANNEL📌 THESE ARE THE 𝘽𝙊𝙨𝙎 ORDER 😅_
+ 
 **🔄JOIN CHANNEL & TRY AGAIN🔄**"""
 
     MEMES_TXT = """Help: <b>Memes</b>
