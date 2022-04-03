@@ -426,8 +426,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
             ],[
             InlineKeyboardButton('INLINE MODE', switch_inline_query_current_chat='')
             ],[
-            InlineKeyboardButton('NEW MOVIES', url='https://t.me/ngc_new_database_1'),
-            InlineKeyboardButton('OWNER', url='https://t.me/Unavailable4allTime')
+            InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums'),
+            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
             ],[
             InlineKeyboardButton('✗CLOSE THIS MENU✗', callback_data='close_data')
         ]]
