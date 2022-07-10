@@ -37,7 +37,7 @@ async def next_page(bot, query):
 
     ident, req, key, offset = query.data.split("_")
     if int(req) not in [query.from_user.id, 0]:
-        return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! Search Your Own File, Don't Click Others Results 😬", show_alert=True)
+        return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! മറ്റുള്ളവരുടെ റിപ്ലൈയിൽ വന്നു നെക്കാതെ സ്വന്തമായി സെർച്ച് ചെയ്‌ത് എടുക്കൂ.😬", show_alert=True)
     try:
         offset = int(offset)
     except:
@@ -117,13 +117,13 @@ async def advantage_spoll_choker(bot, query):
     if not movies:
         return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! You are clicking on an old button which is expired ⚠️", show_alert=True)
     movie = movies[(int(movie_))]
-    await query.answer('🔎 Checking for Movie in My database... 🔎')
+    await query.answer('🔎 𝘚𝘦𝘢𝘳𝘤𝘩𝘪𝘯𝘨 𝘍𝘪𝘭𝘦𝘴 𝘖𝘯 𝘋𝘢𝘵𝘢𝘣𝘢𝘴𝘦... 🔎')
     files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
     if files:
         k = (movie, files, offset, total_results)
         await auto_filter(bot, query, k)
     else:
-        k = await query.message.edit(f'⚠️ Hey, {query.from_user.first_name}! YOUR REQUESTED MOVIE IS NOT IN MY DATABASE,ASK THE OWNER⚠️')
+        k = await query.message.edit(f'⚠️ Hey, {query.from_user.first_name}! താങ്കൾ തിരഞ്ഞെടുത്ത മൂവി എന്റെ ഡാറ്റാബേസിൽ ഇല്ല...𝘊𝘰𝘯𝘵𝘢𝘤𝘵 𝘏𝘪𝘮▷@Unavailable4allTime')
         await asyncio.sleep(10)
         await k.delete()
     
@@ -348,11 +348,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f"{files.file_name}"
         buttons = [
             [
-                InlineKeyboardButton('OWNER', url='https://t.me/iam_digin'),
-                InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums')
+                InlineKeyboardButton('𝘖𝘸𝘯𝘦𝘳', url='https://t.me/Unavailable4allTime'),
+                InlineKeyboardButton('𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴', url='https://t.me/Team_NGC')
             ],
             [
-                InlineKeyboardButton('SERIES ZONE' url=f'https://t.me/vibeflixseries')
+                InlineKeyboardButton('𝘚𝘦𝘳𝘪𝘦𝘴 𝘊𝘩𝘢𝘯𝘯𝘦𝘭' url=f'https://t.me/NGCseries1')
             ]
             ]
             
@@ -380,7 +380,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
     elif query.data.startswith("checksub"):
         if AUTH_CHANNEL and not await is_subscribed(client, query):
-            await query.answer(f"Hey, {query.from_user.first_name}! JOIN THE CHANNEL FIRST,THEN CLICK THE BUTTON😣",show_alert=True)
+            await query.answer(f"Hey, {query.from_user.first_name}! ജോയിൻ ആകാതെ ഒന്നും നടക്കില്ല😣",show_alert=True)
             return
         ident, file_id = query.data.split("#")
         files_ = await get_file_details(file_id)
@@ -400,11 +400,11 @@ async def cb_handler(client: Client, query: CallbackQuery):
             f_caption = f"{title}"
         buttons = [
             [
-                InlineKeyboardButton('OWNER', url='https://t.me/iam_digin'),
-                InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums')
+                InlineKeyboardButton('𝘖𝘸𝘯𝘦𝘳', url='https://t.me/Unavailable4allTime'),
+                InlineKeyboardButton('𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴', url='https://t.me/Team_NGC')
             ],
             [
-                InlineKeyboardButton('SERIES ZONEE', url=f'https://t.me/vibeflixseries')
+                InlineKeyboardButton('𝘚𝘦𝘳𝘪𝘦𝘴 𝘊𝘩𝘢𝘯𝘯𝘦𝘭', url=f'https://t.me/NGCseries1')
             ]
             ]
         await query.answer()
@@ -419,17 +419,17 @@ async def cb_handler(client: Client, query: CallbackQuery):
         await query.answer()
     elif query.data == "start":
         buttons = [[
-            InlineKeyboardButton('𝙑𝙄𝘽𝙀𝙁𝙇𝙄𝙓', url=f'https://t.me/vibeflix_request')
+            InlineKeyboardButton('𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™', url=f'https://t.me/newgen_cinemazzz')
             ],[
-            InlineKeyboardButton('HELP', callback_data='help'),
-            InlineKeyboardButton('ABOUT', callback_data='about')
+            InlineKeyboardButton('✆𝘏𝘦𝘭𝘱✆', callback_data='help'),
+            InlineKeyboardButton('⇘𝘈𝘣𝘰𝘶𝘵⇙', callback_data='about')
             ],[
-            InlineKeyboardButton('INLINE MODE', switch_inline_query_current_chat='')
+            InlineKeyboardButton('⋋𝘚𝘦𝘢𝘳𝘤𝘩 𝘔𝘰𝘷𝘪𝘦𝘴⋋', switch_inline_query_current_chat='')
             ],[
-            InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums'),
-            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
+            InlineKeyboardButton('⋋𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴⋋', url='https://t.me/Team_NGC'),
+            InlineKeyboardButton('⌥𝘖𝘸𝘯𝘦𝘳⌥', url='https://t.me/Unavailable4allTime')
             ],[
-            InlineKeyboardButton('✗CLOSE THIS MENU✗', callback_data='close_data')
+            InlineKeyboardButton('⋉𝘊𝘭𝘰𝘴𝘦 𝘛𝘩𝘦 𝘔𝘦𝘯𝘶⋊', callback_data='close_data')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await query.message.edit_text(
@@ -857,29 +857,29 @@ async def auto_filter(client, msg, spoll=False):
             **locals()
         )
     else:
-        cap = f"<b>🎬 Title:</b> {search}\n</b>\n<b><a href='https://t.me/vibeflix_nums'>◆NEW RELEASES◆</a></b>\n\n<b>✍️ Note:</b> <s>THIS MESSAGE EXISTS 10 MINUTES</s>"
+        cap = f"<b>🎬 Title:</b> {search}\n</b>\n<b><a href='https://t.me/Team_NGC'>𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴</a></b>\n\n<b></b> <s>✑ 𝘚𝘩𝘢𝘳𝘪𝘯𝘨 𝘖𝘧 𝘛𝘩𝘪𝘴 𝘎𝘳𝘰𝘶𝘱 𝘞𝘪𝘵𝘩 𝘠𝘰𝘶𝘳 𝘍𝘳𝘪𝘦𝘯𝘥𝘴 𝘞𝘰𝘶𝘭𝘥 𝘣𝘦 𝘈𝘸𝘦𝘴𝘰𝘮𝘦♡...</s>"
     if imdb and imdb.get('poster'):
         try:
             hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(600)
+            await asyncio.sleep(86400)
             await hehe.delete()
             await message.delete()
         except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
             pic = imdb.get('poster')
             poster = pic.replace('.jpg', "._V1_UX360.jpg")
             hmm = await message.reply_photo(photo=poster, caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(600)
+            await asyncio.sleep(86400)
             await hmm.delete()
             await message.delete()
         except Exception as e:
             logger.exception(e)
-            fek = await message.reply_photo(photo="https://telegra.ph/file/82b5bbbab6d5e5593b6b2.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(600)
+            fek = await message.reply_photo(photo="https://telegra.ph/file/2647d5d2771b80e493779.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
+            await asyncio.sleep(86400)
             await fek.delete()
             await msg.delete()
     else:
-        fuk = await message.reply_photo(photo="https://telegra.ph/file/8b42f6caf6ef5fd76766f.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-        await asyncio.sleep(600)
+        fuk = await message.reply_photo(photo="https://telegra.ph/file/2647d5d2771b80e493779.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
+        await asyncio.sleep(86400)
         await fuk.delete()
         await msg.delete()
     if spoll:
