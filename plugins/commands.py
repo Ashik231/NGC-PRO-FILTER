@@ -18,7 +18,7 @@ async def start(client, message):
     if message.chat.type in ['group', 'supergroup']:
         buttons = [
             [
-                InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
+                InlineKeyboardButton('⌥𝘖𝘸𝘯𝘦𝘳⌥', url='https://t.me/Unavailable4allTime')
             ],
             [
                 InlineKeyboardButton('help', url=f"https://t.me/{temp.U_NAME}?start=help"),
@@ -38,17 +38,17 @@ async def start(client, message):
         await client.send_message(LOG_CHANNEL, Script.LOG_TEXT_P.format(message.from_user.id, message.from_user.mention))
     if len(message.command) != 2:
         buttons = [[
-            InlineKeyboardButton('𝙑𝙄𝘽𝙀𝙁𝙇𝙄𝙓', url=f'https://t.me/vibeflix_request')
+            InlineKeyboardButton('𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™', url=f'https://t.me/newgen_cinemazzz')
             ],[
-            InlineKeyboardButton('HELP', callback_data='help'),
-            InlineKeyboardButton('ABOUT', callback_data='about')
+            InlineKeyboardButton('✆𝘏𝘦𝘭𝘱✆', callback_data='help'),
+            InlineKeyboardButton('⇘𝘈𝘣𝘰𝘶𝘵⇙', callback_data='about')
             ],[
-            InlineKeyboardButton('INLINE MODE', switch_inline_query_current_chat='')
+            InlineKeyboardButton('⌿𝘚𝘦𝘢𝘳𝘤𝘩 𝘔𝘰𝘷𝘪𝘦𝘴⌿', switch_inline_query_current_chat='')
             ],[
-            InlineKeyboardButton('NEW RELEASES, url='https://t.me/vibeflix_nums'),
-            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
+            InlineKeyboardButton('⌿𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴⌿', url='https://t.me/Team_NGC'),
+            InlineKeyboardButton('⌥𝘖𝘸𝘯𝘦𝘳⌥', url='https://t.me/Unavailable4allTime')
             ],[
-            InlineKeyboardButton('✗ Close the Menu ✗', callback_data='close_data')
+            InlineKeyboardButton('⋉𝘊𝘭𝘰𝘴𝘦 𝘵𝘩𝘦 𝘔𝘦𝘯𝘶⋊', callback_data='close_data')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_photo(
@@ -68,13 +68,13 @@ async def start(client, message):
         btn = [
             [
                 InlineKeyboardButton(
-                    "NEW RELEASES📌", url=invite_link.invite_link
+                    "𝘕𝘦𝘸 𝘙𝘦𝘭𝘦𝘢𝘴𝘦📌", url=invite_link.invite_link
                 )
             ]
         ]
 
         if message.command[1] != "subscribe":
-            btn.append([InlineKeyboardButton(" 🔄TRY AGAIN,JUST TAP🔄", callback_data=f"checksub#{message.command[1]}")])
+            btn.append([InlineKeyboardButton("⎌𝘛𝘳𝘺 𝘈𝘨𝘢𝘪𝘯-𝘑𝘶𝘴𝘵 𝘛𝘢𝘱⎌", callback_data=f"checksub#{message.command[1]}")])
         await client.send_message(
             chat_id=message.from_user.id,
             text=Script.FORCESUB_TXT,
@@ -85,15 +85,15 @@ async def start(client, message):
         return
     if len(message.command) ==2 and message.command[1] in ["subscribe", "error", "okay", "help"]:
         buttons = [[
-            InlineKeyboardButton('𝙑𝙄𝘽𝙀𝙁𝙇𝙄𝙓', url=f'https://t.me/vibeflix_request')
+            InlineKeyboardButton('𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™', url=f'https://t.me/newgen_cinemazzz')
             ],[
-            InlineKeyboardButton('HELP', callback_data='help'),
-            InlineKeyboardButton('ABOUT', callback_data='about')
+            InlineKeyboardButton('✆𝘏𝘦𝘭𝘱✆', callback_data='help'),
+            InlineKeyboardButton('⇘𝘈𝘣𝘰𝘶𝘵⇙', callback_data='about')
             ],[
-            InlineKeyboardButton('INLINE MODE', switch_inline_query_current_chat='')
+            InlineKeyboardButton('⌿𝘚𝘦𝘢𝘳𝘤𝘩 𝘔𝘰𝘷𝘪𝘦𝘴⌿', switch_inline_query_current_chat='')
             ],[
-            InlineKeyboardButton('NEW RELEASES', url='https://t.me/vibeflix_nums'),
-            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
+            InlineKeyboardButton('⌿𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴⌿', url='https://t.me/Team_NGC'),
+            InlineKeyboardButton('OWNER', url='https://t.me/Unavailable4allTime')
             ],[
             InlineKeyboardButton('✗ Close the Menu ✗', callback_data='close_data')
         ]]
@@ -124,11 +124,11 @@ async def start(client, message):
         f_caption = f"{files.file_name}"
     buttons = [
         [
-            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin'),
-            InlineKeyboardButton('MAIN GROUP', url='https://t.me/vibeflix_request')
+            InlineKeyboardButton('𝘖𝘸𝘯𝘦𝘳', url='https://t.me/Unavailable4allTime'),
+            InlineKeyboardButton('𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴', url='https://t.me/Team_NGC')
         ],
         [
-            InlineKeyboardButton('SERIES ZONE', url=f'https://t.me/vibeflixseries')
+            InlineKeyboardButton('𝘚𝘦𝘳𝘪𝘦𝘴 𝘊𝘩𝘢𝘯𝘯𝘦𝘭', url=f'https://t.me/NGCseries1')
         ]
         ]
     await client.send_cached_media(
@@ -183,7 +183,7 @@ async def delete(bot, message):
     """Delete file from database"""
     reply = message.reply_to_message
     if reply and reply.media:
-        msg = await message.reply("Processing...⏳", quote=True)
+        msg = await message.reply("𝘗𝘳𝘰𝘨𝘳𝘦𝘴𝘴𝘪𝘯𝘨...⏳", quote=True)
     else:
         await message.reply('Reply to file with /delete which you want to delete', quote=True)
         return
