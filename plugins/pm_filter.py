@@ -1,994 +1,277 @@
-#Kanged From @TroJanZheX
-import asyncio
-import re
-import ast
-
-from pyrogram.errors.exceptions.bad_request_400 import MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty
-from script import Script
-import pyrogram
-from database.connections_mdb import active_connection, all_connections, delete_connection, if_active, make_active, make_inactive
-from info import ADMINS, AUTH_CHANNEL, AUTH_USERS, CUSTOM_FILE_CAPTION, AUTH_GROUPS, P_TTI_SHOW_OFF, IMDB, SINGLE_BUTTON, SPELL_CHECK_REPLY, IMDB_TEMPLATE
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from pyrogram import Client, filters
-from pyrogram.errors import FloodWait, UserIsBlocked, MessageNotModified, PeerIdInvalid
-from utils import get_size, is_subscribed, get_poster, search_gagala, temp
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.errors.exceptions.bad_request_400 import MessageTooLong, PeerIdInvalid
+from info import ADMINS, LOG_CHANNEL, SUPPORT_CHAT, MELCOW_NEW_USERS
 from database.users_chats_db import db
-from database.ia_filterdb import Media, get_file_details, get_search_results
-from database.filters_mdb import(
-   del_all,
-   find_filter,
-   get_filters,
-)
-import logging
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.ERROR)
+from database.ia_filterdb import Media
+from utils import get_size, temp, get_settings
+from script import Script
+from pyrogram.errors import ChatAdminRequired
 
-BUTTONS = {}
-SPELL_CHECK = {}
+"""-----------------------------------------https://t.me/JosProjects --------------------------------------"""
 
-@Client.on_message(filters.group & filters.text & ~filters.edited & filters.incoming)
-async def give_filter(client,message):
-    k = await manual_filters(client, message)
-    if k == False:
-        await auto_filter(client, message)   
-
-@Client.on_callback_query(filters.regex(r"^next"))
-async def next_page(bot, query):
-
-    ident, req, key, offset = query.data.split("_")
-    if int(req) not in [query.from_user.id, 0]:
-        return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! മറ്റുള്ളവരുടെ റിപ്ലൈയിൽ വന്നു നെക്കാതെ സ്വന്തമായി സെർച്ച് ചെയ്‌ത് എടുക്കൂ.😬", show_alert=True)
-    try:
-        offset = int(offset)
-    except:
-        offset = 0
-    search = BUTTONS.get(key)
-    if not search:
-        await query.answer(f"⚠️ Hey, {query.from_user.first_name}! You are using one of my old messages, send the request again ⚠️", show_alert=True)
-        return
-
-    files, n_offset, total = await get_search_results(search, offset=offset, filter=True)
-    try:
-        n_offset = int(n_offset)
-    except:
-        n_offset = 0
-
-    if not files:
-        return
-    if SINGLE_BUTTON:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {file.file_name}", callback_data=f'files#{file.file_id}'
-                ),
-            ]
-            for file in files
-        ]
-    else:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"{file.file_name}", callback_data=f'files#{file.file_id}'
-                ),
-                InlineKeyboardButton(
-                    text=f"{get_size(file.file_size)}",
-                    callback_data=f'files_#{file.file_id}',
-                ),
-            ]
-            for file in files
-        ]
-
-    if 0 < offset <= 10:
-        off_set = 0
-    elif offset == 0:
-        off_set = None
-    else:
-        off_set = offset - 10
-    if n_offset == 0:
-        btn.append(
-            [InlineKeyboardButton("« BACK", callback_data=f"next_{req}_{key}_{off_set}"), InlineKeyboardButton(f"📃 Pages {round(int(offset)/10)+1} / {round(total/10)}", callback_data="pages")]
-        )
-    elif off_set is None:
-        btn.append([InlineKeyboardButton(f"🗓 {round(int(offset)/10)+1} / {round(total/10)}", callback_data="pages"), InlineKeyboardButton("NEXT »", callback_data=f"next_{req}_{key}_{n_offset}")])
-    else:
-        btn.append(
-            [
-                InlineKeyboardButton("« BACK", callback_data=f"next_{req}_{key}_{off_set}"),
-                InlineKeyboardButton(f"🗓 {round(int(offset)/10)+1} / {round(total/10)}", callback_data="pages"),
-                InlineKeyboardButton("NEXT »", callback_data=f"next_{req}_{key}_{n_offset}")
-            ],
-        )
-    try:
-        await query.edit_message_reply_markup( 
-            reply_markup=InlineKeyboardMarkup(btn)
-        )
-    except MessageNotModified:
-        pass
-    await query.answer()
-
-@Client.on_callback_query(filters.regex(r"^spolling"))
-async def advantage_spoll_choker(bot, query):
-    _, user, movie_ = query.data.split('#')
-    if int(user) != 0 and query.from_user.id != int(user):
-        return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! എന്തിനാ മോനെ മറ്റുള്ളവരുടെ റിപ്ലയിൽ വന്നു നെക്കുന്നത്‌, സ്വന്തമായി എന്തേലും ചെയ്യ്...😬", show_alert=True)
-    if movie_  == "close_spellcheck":
-        return await query.message.delete()
-    movies = SPELL_CHECK.get(query.message.reply_to_message.message_id)
-    if not movies:
-        return await query.answer(f"⚠️ Hey, {query.from_user.first_name}! You are clicking on an old button which is expired ⚠️", show_alert=True)
-    movie = movies[(int(movie_))]
-    await query.answer('🔎 𝘚𝘦𝘢𝘳𝘤𝘩𝘪𝘯𝘨 𝘍𝘪𝘭𝘦𝘴 𝘖𝘯 𝘋𝘢𝘵𝘢𝘣𝘢𝘴𝘦... 🔎')
-    files, offset, total_results = await get_search_results(movie, offset=0, filter=True)
-    if files:
-        k = (movie, files, offset, total_results)
-        await auto_filter(bot, query, k)
-    else:
-        k = await query.message.edit(f'⚠️ Hey, {query.from_user.first_name}! താങ്കൾ തിരഞ്ഞെടുത്ത മൂവി എന്റെ ഡാറ്റാബേസിൽ ഇല്ല...𝘊𝘰𝘯𝘵𝘢𝘤𝘵 𝘏𝘪𝘮▷@Unavailable4allTime')
-        await asyncio.sleep(10)
-        await k.delete()
-    
-
-@Client.on_callback_query()
-async def cb_handler(client: Client, query: CallbackQuery):
-    if query.data == "close_data":
-        await query.message.delete()
-        try:
-            await query.message.reply_to_message.delete()
-        except:
-            pass
-
-    elif query.data == "delallconfirm":
-        userid = query.from_user.id
-        chat_type = query.message.chat.type
-
-        if chat_type == "private":
-            grpid  = await active_connection(str(userid))
-            if grpid is not None:
-                grp_id = grpid
-                try:
-                    chat = await client.get_chat(grpid)
-                    title = chat.title
-                except:
-                    await query.message.edit_text("Make sure I'm present in your group!!", quote=True)
-                    return
-            else:
-                await query.message.edit_text(
-                    "I'm not connected to any groups!\nCheck /connections or connect to any groups",
-                    quote=True
-                )
-                return
-
-        elif chat_type in ["group", "supergroup"]:
-            grp_id = query.message.chat.id
-            title = query.message.chat.title
-
-        else:
-            return
-
-        st = await client.get_chat_member(grp_id, userid)
-        if (st.status == "creator") or (str(userid) in ADMINS):    
-            await del_all(query.message, grp_id, title)
-        else:
-            await query.answer(f"🤒 Hey, {query.from_user.first_name}! You need to be Group Owner or an Auth User to do that! 🤒",show_alert=True)
-
-    elif query.data == "delallcancel":
-        userid = query.from_user.id
-        chat_type = query.message.chat.type
-
-        if chat_type == "private":
-            await query.message.reply_to_message.delete()
-            await query.message.delete()
-
-        elif chat_type in ["group", "supergroup"]:
-            grp_id = query.message.chat.id
-            st = await client.get_chat_member(grp_id, userid)
-            if (st.status == "creator") or (str(userid) in ADMINS):
-                await query.message.delete()
-                try:
-                    await query.message.reply_to_message.delete()
-                except:
-                    pass
-            else:
-                await query.answer(f"⚠️ Hey, {query.from_user.first_name}! Thats not for you!! ⚠️",show_alert=True)
-
-
-    elif "groupcb" in query.data:
-        await query.answer()
-
-        group_id = query.data.split(":")[1]
-        
-        act = query.data.split(":")[2]
-        hr = await client.get_chat(int(group_id))
-        title = hr.title
-        user_id = query.from_user.id
-
-        if act == "":
-            stat = "CONNECT"
-            cb = "connectcb"
-        else:
-            stat = "DISCONNECT"
-            cb = "disconnect"
-
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton(f"{stat}", callback_data=f"{cb}:{group_id}"),
-                InlineKeyboardButton("DELETE", callback_data=f"deletecb:{group_id}")],
-            [InlineKeyboardButton("BACK", callback_data="backcb")]
-        ])
-
-        await query.message.edit_text(
-            f"Group Name : **{title}**\nGroup ID : `{group_id}`",
-            reply_markup=keyboard,
-            parse_mode="md"
-        )
-        return
-
-    elif "connectcb" in query.data:
-        await query.answer()
-
-        group_id = query.data.split(":")[1]
-
-        hr = await client.get_chat(int(group_id))
-
-        title = hr.title
-
-        user_id = query.from_user.id
-
-        mkact = await make_active(str(user_id), str(group_id))
-
-        if mkact:
-            await query.message.edit_text(
-                f"Connected to **{title}**",
-                parse_mode="md"
+@Client.on_message(filters.new_chat_members & filters.group)
+async def save_group(bot, message):
+    r_j_check = [u.id for u in message.new_chat_members]
+    if temp.ME in r_j_check:
+        if not await db.get_chat(message.chat.id):
+            total=await bot.get_chat_members_count(message.chat.id)
+            r_j = message.from_user.mention if message.from_user else "Anonymous" 
+            await bot.send_message(LOG_CHANNEL, Script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, r_j))       
+            await db.add_chat(message.chat.id, message.chat.title)
+        if message.chat.id in temp.BANNED_CHATS:
+            # Inspired from a boat of a banana tree
+            buttons = [[
+                InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
+            ]]
+            reply_markup=InlineKeyboardMarkup(buttons)
+            k = await message.reply(
+                text='<b>CHAT NOT ALLOWED 🐞\n\nMy admins has restricted me from working here ! If you want to know more about it contact support..</b>',
+                reply_markup=reply_markup,
             )
-        else:
-            await query.message.edit_text('Some error occured!!', parse_mode="md")
-        return
-   
-    elif "disconnect" in query.data:
-        await query.answer()
 
-        group_id = query.data.split(":")[1]
-
-        hr = await client.get_chat(int(group_id))
-
-        title = hr.title
-        user_id = query.from_user.id
-
-        mkinact = await make_inactive(str(user_id))
-
-        if mkinact:
-            await query.message.edit_text(
-                f"Disconnected from **{title}**",
-                parse_mode="md"
-            )
-        else:
-            await query.message.edit_text(
-                f"Some error occured!!",
-                parse_mode="md"
-            )
-        return
-    elif "deletecb" in query.data:
-        await query.answer()
-
-        user_id = query.from_user.id
-        group_id = query.data.split(":")[1]
-
-        delcon = await delete_connection(str(user_id), str(group_id))
-
-        if delcon:
-            await query.message.edit_text(
-                "Successfully deleted connection"
-            )
-        else:
-            await query.message.edit_text(
-                f"Some error occured!!",
-                parse_mode="md"
-            )
-        return
-    elif query.data == "backcb":
-        await query.answer()
-
-        userid = query.from_user.id
-
-        groupids = await all_connections(str(userid))
-        if groupids is None:
-            await query.message.edit_text(
-                "There are no active connections!! Connect to some groups first.",
-            )
-            return
-        buttons = []
-        for groupid in groupids:
             try:
-                ttl = await client.get_chat(int(groupid))
-                title = ttl.title
-                active = await if_active(str(userid), str(groupid))
-                act = " - ACTIVE" if active else ""
-                buttons.append(
-                    [
-                        InlineKeyboardButton(
-                            text=f"{title}{act}", callback_data=f"groupcb:{groupid}:{act}"
-                        )
-                    ]
-                )
+                await k.pin()
             except:
                 pass
-        if buttons:
-            await query.message.edit_text(
-                "Your connected group details ;\n\n",
-                reply_markup=InlineKeyboardMarkup(buttons)
-            )
-
-    elif "alertmessage" in query.data:
-        grp_id = query.message.chat.id
-        i = query.data.split(":")[1]
-        keyword = query.data.split(":")[2]
-        reply_text, btn, alerts, fileid = await find_filter(grp_id, keyword)
-        if alerts is not None:
-            alerts = ast.literal_eval(alerts)
-            alert = alerts[int(i)]
-            alert = alert.replace("\\n", "\n").replace("\\t", "\t")
-            await query.answer(alert,show_alert=True)
-
-    if query.data.startswith("file"):
-        ident, file_id = query.data.split("#")
-        files_ = await get_file_details(file_id)
-        if not files_:
-            return await query.answer(f'Hey, {query.from_user.first_name}! No such file exist. Send Request Again')
-        files = files_[0]
-        title = files.file_name
-        size=get_size(files.file_size)
-        f_caption=files.caption
-        if CUSTOM_FILE_CAPTION:
-            try:
-                f_caption=CUSTOM_FILE_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='' if f_caption is None else f_caption)
-            except Exception as e:
-                logger.exception(e)
-            f_caption=f_caption
-        if f_caption is None:
-            f_caption = f"{files.file_name}"
-        buttons = [
-            [
-                InlineKeyboardButton('𝘖𝘸𝘯𝘦𝘳', url='https://t.me/Unavailable4allTime'),
-                InlineKeyboardButton('𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴', url='https://t.me/Team_NGC')
-            ],
-            [
-                InlineKeyboardButton('𝘚𝘦𝘳𝘪𝘦𝘴 𝘊𝘩𝘢𝘯𝘯𝘦𝘭' url=f'https://t.me/NGCseries1')
-            ]
-            ]
-            
-        try:
-            if AUTH_CHANNEL and not await is_subscribed(client, query):
-                await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
-                return
-            elif P_TTI_SHOW_OFF:
-                await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
-                return
-            else:
-                await client.send_cached_media(
-                    chat_id=query.from_user.id,
-                    file_id=file_id,
-                    caption=f_caption,
-                    reply_markup=InlineKeyboardMarkup(buttons)
-                    )
-                await query.answer(f'Hey {query.from_user.first_name} Check PM, I have sent files in pm',show_alert = True)
-        except UserIsBlocked:
-            await query.answer(f'Hey {query.from_user.first_name} Unblock the bot mahn !',show_alert = True)
-        except PeerIdInvalid:
-            await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
-        except Exception as e:
-            await query.answer(url=f"https://t.me/{temp.U_NAME}?start={file_id}")
-
-    elif query.data.startswith("checksub"):
-        if AUTH_CHANNEL and not await is_subscribed(client, query):
-            await query.answer(f"Hey, {query.from_user.first_name}! ജോയിൻ ആകാതെ ഒന്നും നടക്കില്ല😣",show_alert=True)
+            await bot.leave_chat(message.chat.id)
             return
-        ident, file_id = query.data.split("#")
-        files_ = await get_file_details(file_id)
-        if not files_:
-            return await query.answer(f'Hello, {query.from_user.first_name}! No such file exist. Send Request Again')
-        files = files_[0]
-        title = files.file_name
-        size=get_size(files.file_size)
-        f_caption=files.caption
-        if CUSTOM_FILE_CAPTION:
-            try:
-                f_caption=CUSTOM_FILE_CAPTION.format(file_name= '' if title is None else title, file_size='' if size is None else size, file_caption='' if f_caption is None else f_caption)
-            except Exception as e:
-                logger.exception(e)
-                f_caption=f_caption
-        if f_caption is None:
-            f_caption = f"{title}"
-        buttons = [
-            [
-                InlineKeyboardButton('𝘖𝘸𝘯𝘦𝘳', url='https://t.me/Unavailable4allTime'),
-                InlineKeyboardButton('𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴', url='https://t.me/Team_NGC')
-            ],
-            [
-                InlineKeyboardButton('𝘚𝘦𝘳𝘪𝘦𝘴 𝘊𝘩𝘢𝘯𝘯𝘦𝘭', url=f'https://t.me/NGCseries1')
-            ]
-            ]
-        await query.answer()
-        await client.send_cached_media(
-            chat_id=query.from_user.id,
-            file_id=file_id,
-            caption=f_caption,
-            reply_markup=InlineKeyboardMarkup(buttons)
-            )
+        buttons = [[
+            InlineKeyboardButton('ℹ️ Help', url=f"https://t.me/{temp.U_NAME}?start=help"),
+            InlineKeyboardButton('Updates 📢', url='https://t.me/josprojects/221')
+        ]]
+        reply_markup=InlineKeyboardMarkup(buttons)
+        await message.reply_text(
+            text=f"<b>Thankyou For Adding Me In {message.chat.title} ❣️\n\nIf you have any questions & doubts about using me contact support.</b>",
+            reply_markup=reply_markup)
+    else:
+        settings = await get_settings(message.chat.id)
+        if settings["welcome"]:
+            for u in message.new_chat_members:
+                buttons = [[
+                InlineKeyboardButton('👉 ⚠️ Press me... 🥰 👈', url="https://t.me/josprojects")
+            ]]
+                if (temp.MELCOW).get('welcome') is not None:
+                    try:
+                        await (temp.MELCOW['welcome']).delete()
+                    except:
+                        pass
+                temp.MELCOW['welcome'] = await message.reply_text(
+                text=f"<b>👋 Hi! {u.mention},</b> Welcome to <b>{message.chat.title}</b>\n\n<b>👇 Official Projects Channels 👇</b>",
+                disable_web_page_preview = True,
+                reply_markup=InlineKeyboardMarkup(buttons))
 
-    elif query.data == "pages":
-        await query.answer()
-    elif query.data == "start":
+@Client.on_message(filters.command('leave') & filters.user(ADMINS))
+async def leave_a_chat(bot, message):
+    if len(message.command) == 1:
+        return await message.reply('Give me a chat id')
+    chat = message.command[1]
+    try:
+        chat = int(chat)
+    except:
+        chat = chat
+    try:
         buttons = [[
-            InlineKeyboardButton('𝙉𝙀𝙒𝙂𝙀𝙉 𝘾𝙄𝙉𝙀𝙈𝘼𝙕𝙕𝙕™', url=f'https://t.me/newgen_cinemazzz')
-            ],[
-            InlineKeyboardButton('✆𝘏𝘦𝘭𝘱✆', callback_data='help'),
-            InlineKeyboardButton('⇘𝘈𝘣𝘰𝘶𝘵⇙', callback_data='about')
-            ],[
-            InlineKeyboardButton('⋋𝘚𝘦𝘢𝘳𝘤𝘩 𝘔𝘰𝘷𝘪𝘦𝘴⋋', switch_inline_query_current_chat='')
-            ],[
-            InlineKeyboardButton('⋋𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴⋋', url='https://t.me/Team_NGC'),
-            InlineKeyboardButton('⌥𝘖𝘸𝘯𝘦𝘳⌥', url='https://t.me/Unavailable4allTime')
-            ],[
-            InlineKeyboardButton('⋉𝘊𝘭𝘰𝘴𝘦 𝘛𝘩𝘦 𝘔𝘦𝘯𝘶⋊', callback_data='close_data')
+            InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
         ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.START_TXT.format(query.from_user.mention, temp.U_NAME, temp.B_NAME),
-            disable_web_page_preview=True,
+        reply_markup=InlineKeyboardMarkup(buttons)
+        await bot.send_message(
+            chat_id=chat,
+            text='<b>Hello Friends, \nMy admin has told me to leave from group so i go! If you wanna add me again contact my support group.</b>',
             reply_markup=reply_markup,
-            parse_mode='html'
         )
-    elif query.data == "help":
+
+        await bot.leave_chat(chat)
+        await message.reply(f"left the chat `{chat}`")
+    except Exception as e:
+        await message.reply(f'Error - {e}')
+
+@Client.on_message(filters.command('disable') & filters.user(ADMINS))
+async def disable_chat(bot, message):
+    if len(message.command) == 1:
+        return await message.reply('Give me a chat id')
+    r = message.text.split(None)
+    if len(r) > 2:
+        reason = message.text.split(None, 2)[2]
+        chat = message.text.split(None, 2)[1]
+    else:
+        chat = message.command[1]
+        reason = "No reason Provided"
+    try:
+        chat_ = int(chat)
+    except:
+        return await message.reply('Give Me A Valid Chat ID')
+    cha_t = await db.get_chat(int(chat_))
+    if not cha_t:
+        return await message.reply("Chat Not Found In DB")
+    if cha_t['is_disabled']:
+        return await message.reply(f"This chat is already disabled:\nReason-<code> {cha_t['reason']} </code>")
+    await db.disable_chat(int(chat_), reason)
+    temp.BANNED_CHATS.append(int(chat_))
+    await message.reply('Chat Successfully Disabled')
+    try:
         buttons = [[
-            InlineKeyboardButton('admin', callback_data='admin'),
-            InlineKeyboardButton('connect', callback_data='coct'),
-            InlineKeyboardButton('filters', callback_data='auto_manual'),
-            ],[
-            InlineKeyboardButton('gtrans', callback_data='gtrans'),
-            InlineKeyboardButton('info', callback_data='info'),
-            InlineKeyboardButton('memes', callback_data='memes'),
-            ],[
-            InlineKeyboardButton('paste', callback_data='paste'),
-            InlineKeyboardButton('password gen', callback_data='genpassword'),
-            InlineKeyboardButton('pin', callback_data='pin'),
-            ],[
-            InlineKeyboardButton('purge', callback_data='purge'),
-            InlineKeyboardButton('restric', callback_data='restric'),
-            InlineKeyboardButton('search', callback_data='search'),
-            ],[
-            InlineKeyboardButton('music', callback_data='music'),
-            InlineKeyboardButton('tt-speech', callback_data='tts'),
-            InlineKeyboardButton('tgraph', callback_data='tgraph'),
-            ],[
-            InlineKeyboardButton('« Back', callback_data='start'),
-            InlineKeyboardButton('url shortner', callback_data='shortner'),
-            InlineKeyboardButton('zombies', callback_data='zombies'),
+            InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
         ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.HELP_TXT.format(query.from_user.mention),
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "about":
-        buttons= [[
-            InlineKeyboardButton('status', callback_data='stats'),
-            InlineKeyboardButton('source', callback_data='source')
-            ],[
-            InlineKeyboardButton('search movie', switch_inline_query_current_chat='')
-            ],[
-            InlineKeyboardButton('help & commands', callback_data='help')
-            ],[
-            InlineKeyboardButton('« Back', callback_data='start'),
-            InlineKeyboardButton('Close ✗', callback_data='close_data')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.ABOUT_TXT.format(temp.B_NAME),
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "source":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='about')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.SOURCE_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "manualfilter":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='auto_manual'),
-            InlineKeyboardButton('Buttons »', callback_data='button')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.MANUALFILTER_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "button":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='manualfilter')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.BUTTON_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "autofilter":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='auto_manual')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.AUTOFILTER_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "auto_manual":
-        buttons = [[
-            InlineKeyboardButton('auto', callback_data='autofilter'),
-            InlineKeyboardButton('manual', callback_data='manualfilter')
-            ],[
-            InlineKeyboardButton('« Back', callback_data='help'),
-            InlineKeyboardButton('Close ✗', callback_data='close_data')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.AUTO_MANUAL_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "coct":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.CONNECTION_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "paste":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help'),
-            InlineKeyboardButton('Close ✗', callback_data='close_data')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.PASTE_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "tgraph":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.TGRAPH_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "info":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.INFO_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "search":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.SEARCH_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "gtrans":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help'),
-            InlineKeyboardButton('lang codes', url='https://cloud.google.com/translate/docs/languages')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.GTRANS_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "admin":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.ADMIN_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "zombies":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.ZOMBIES_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "purge":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.PURGE_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "restric":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.RESTRIC_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "memes":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.MEMES_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "shortner":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.URL_SHORTNER_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "tts":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.TTS_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "pin":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.PIN_MESSAGE_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "music":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.MUSIC_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "genpassword":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='help')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        await query.message.edit_text(
-            text=Script.PASSWORD_GEN_TXT,
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "stats":
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='about'),
-            InlineKeyboardButton('Refresh ⧖', callback_data='rfrsh')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        total = await Media.count_documents()
-        users = await db.total_users_count()
-        chats = await db.total_chat_count()
-        monsize = await db.get_db_size()
-        free = 536870912 - monsize
-        monsize = get_size(monsize)
-        free = get_size(free)
-        await query.message.edit_text(
-            text=Script.STATUS_TXT.format(total, users, chats, monsize, free),
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-        )
-    elif query.data == "rfrsh":
-        await query.answer("Fetching MongoDb DataBase")
-        buttons = [[
-            InlineKeyboardButton('« Back', callback_data='about'),
-            InlineKeyboardButton('Refresh ⧖', callback_data='rfrsh')
-        ]]
-        reply_markup = InlineKeyboardMarkup(buttons)
-        total = await Media.count_documents()
-        users = await db.total_users_count()
-        chats = await db.total_chat_count()
-        monsize = await db.get_db_size()
-        free = 536870912 - monsize
-        monsize = get_size(monsize)
-        free = get_size(free)
-        await query.message.edit_text(
-            text=Script.STATUS_TXT.format(total, users, chats, monsize, free),
-            disable_web_page_preview=True,
-            reply_markup=reply_markup,
-            parse_mode='html'
-      )
+        reply_markup=InlineKeyboardMarkup(buttons)
+        await bot.send_message(
+            chat_id=chat_, 
+            text=f'<b>Hello Friends, \nMy admin has told me to leave from group so i go! If you wanna add me again contact my support group.</b> \nReason : <code>{reason}</code>',
+            reply_markup=reply_markup)
+        await bot.leave_chat(chat_)
+    except Exception as e:
+        await message.reply(f"Error - {e}")
+
+
+@Client.on_message(filters.command('enable') & filters.user(ADMINS))
+async def re_enable_chat(bot, message):
+    if len(message.command) == 1:
+        return await message.reply('Give me a chat id')
+    chat = message.command[1]
+    try:
+        chat_ = int(chat)
+    except:
+        return await message.reply('Give Me A Valid Chat ID')
+    sts = await db.get_chat(int(chat))
+    if not sts:
+        return await message.reply("Chat Not Found In DB !")
+    if not sts.get('is_disabled'):
+        return await message.reply('This chat is not yet disabled.')
+    await db.re_enable_chat(int(chat_))
+    temp.BANNED_CHATS.remove(int(chat_))
+    await message.reply("Chat Successfully re-enabled")
+
+
+@Client.on_message(filters.command('stats') & filters.incoming)
+async def get_ststs(bot, message):
+    rju = await message.reply('Fetching stats..')
+    total_users = await db.total_users_count()
+    totl_chats = await db.total_chat_count()
+    files = await Media.count_documents()
+    size = await db.get_db_size()
+    free = 536870912 - size
+    size = get_size(size)
+    free = get_size(free)
+    await rju.edit(Script.STATUS_TXT.format(files, total_users, totl_chats, size, free))
+
+
+# a function for trespassing into others groups, Inspired by a Vazha
+# Not to be used , But Just to showcase his vazhatharam.
+# @Client.on_message(filters.command('invite') & filters.user(ADMINS))
+async def gen_invite(bot, message):
+    if len(message.command) == 1:
+        return await message.reply('Give me a chat id')
+    chat = message.command[1]
+    try:
+        chat = int(chat)
+    except:
+        return await message.reply('Give Me A Valid Chat ID')
+    try:
+        link = await bot.create_chat_invite_link(chat)
+    except ChatAdminRequired:
+        return await message.reply("Invite Link Generation Failed, Iam Not Having Sufficient Rights")
+    except Exception as e:
+        return await message.reply(f'Error {e}')
+    await message.reply(f'Here is your Invite Link {link.invite_link}')
+
+@Client.on_message(filters.command('ban_user') & filters.user(ADMINS))
+async def ban_a_user(bot, message):
+    # https://t.me/Josprojects/
+    if len(message.command) == 1:
+        return await message.reply('Give me a user id / username')
+    r = message.text.split(None)
+    if len(r) > 2:
+        reason = message.text.split(None, 2)[2]
+        chat = message.text.split(None, 2)[1]
+    else:
+        chat = message.command[1]
+        reason = "No reason Provided"
+    try:
+        chat = int(chat)
+    except:
+        pass
+    try:
+        k = await bot.get_users(chat)
+    except PeerIdInvalid:
+        return await message.reply("This is an invalid user, make sure ia have met him before.")
+    except IndexError:
+        return await message.reply("This might be a channel, make sure its a user.")
+    except Exception as e:
+        return await message.reply(f'Error - {e}')
+    else:
+        jar = await db.get_ban_status(k.id)
+        if jar['is_banned']:
+            return await message.reply(f"{k.mention} is already banned\nReason: {jar['ban_reason']}")
+        await db.ban_user(k.id, reason)
+        temp.BANNED_USERS.append(k.id)
+        await message.reply(f"Successfully banned {k.mention}")
+
+
     
-
-async def auto_filter(client, msg, spoll=False):
-    if not spoll:
-        message = msg
-        if re.findall("((^\/|^,|^!|^\.|^[\U0001F600-\U000E007F]).*)", message.text):
-            return
-        if 2 < len(message.text) < 100:
-            search = message.text
-            files, offset, total_results = await get_search_results(search.lower(), offset=0, filter=True)
-            if not files:
-                if SPELL_CHECK_REPLY:
-                    return await advantage_spell_chok(msg)
-                else:
-                    return
-        else:
-            return
+@Client.on_message(filters.command('unban_user') & filters.user(ADMINS))
+async def unban_a_user(bot, message):
+    if len(message.command) == 1:
+        return await message.reply('Give me a user id / username')
+    r = message.text.split(None)
+    if len(r) > 2:
+        reason = message.text.split(None, 2)[2]
+        chat = message.text.split(None, 2)[1]
     else:
-        message = msg.message.reply_to_message # msg will be callback query
-        search, files, offset, total_results = spoll
-    if SINGLE_BUTTON:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"[{get_size(file.file_size)}] {file.file_name}", callback_data=f'files#{file.file_id}'
-                ),
-            ]
-            for file in files
-        ]
+        chat = message.command[1]
+        reason = "No reason Provided"
+    try:
+        chat = int(chat)
+    except:
+        pass
+    try:
+        k = await bot.get_users(chat)
+    except PeerIdInvalid:
+        return await message.reply("This is an invalid user, make sure ia have met him before.")
+    except IndexError:
+        return await message.reply("Thismight be a channel, make sure its a user.")
+    except Exception as e:
+        return await message.reply(f'Error - {e}')
     else:
-        btn = [
-            [
-                InlineKeyboardButton(
-                    text=f"{file.file_name}",
-                    callback_data=f'files#{file.file_id}',
-                ),
-                InlineKeyboardButton(
-                    text=f"{get_size(file.file_size)}",
-                    callback_data=f'files_#{file.file_id}',
-                ),
-            ]
-            for file in files
-        ]
-
-    if offset != "":
-        key = f"{message.chat.id}-{message.message_id}"
-        BUTTONS[key] = search
-        req = message.from_user.id if message.from_user else 0
-        btn.append(
-            [InlineKeyboardButton(text=f"🗓 1/{round(int(total_results)/10)}",callback_data="pages"), InlineKeyboardButton(text="NEXT »",callback_data=f"next_{req}_{key}_{offset}")]
-        )
-    else:
-        btn.append(
-            [InlineKeyboardButton(text="🗓 1/1 🗓",callback_data="pages")]
-        )
-    reply_id = message.reply_to_message.message_id if message.reply_to_message else message.message_id
-    imdb = await get_poster(search, file=(files[0]).file_name) if IMDB else None
-    if imdb:
-        cap = IMDB_TEMPLATE.format(
-            query = search,
-            title = imdb['title'],
-            votes = imdb['votes'],
-            aka = imdb["aka"],
-            seasons = imdb["seasons"],
-            box_office = imdb['box_office'],
-            localized_title = imdb['localized_title'],
-            kind = imdb['kind'],
-            imdb_id = imdb["imdb_id"],
-            cast = imdb["cast"],
-            runtime = imdb["runtime"],
-            countries = imdb["countries"],
-            certificates = imdb["certificates"],
-            languages = imdb["languages"],
-            director = imdb["director"],
-            writer = imdb["writer"],
-            producer = imdb["producer"],
-            composer = imdb["composer"],
-            cinematographer = imdb["cinematographer"],
-            music_team = imdb["music_team"],
-            distributors = imdb["distributors"],
-            release_date = imdb['release_date'],
-            year = imdb['year'],
-            genres = imdb['genres'],
-            poster = imdb['poster'],
-            plot = imdb['plot'],
-            rating = imdb['rating'],
-            url = imdb['url'],
-            **locals()
-        )
-    else:
-        cap = f"<b>🎬 Title:</b> {search}\n</b>\n<b><a href='https://t.me/Team_NGC'>𝘕𝘦𝘸 𝘔𝘰𝘷𝘪𝘦𝘴</a></b>\n\n<b></b> <s>✑ 𝘚𝘩𝘢𝘳𝘪𝘯𝘨 𝘖𝘧 𝘛𝘩𝘪𝘴 𝘎𝘳𝘰𝘶𝘱 𝘞𝘪𝘵𝘩 𝘠𝘰𝘶𝘳 𝘍𝘳𝘪𝘦𝘯𝘥𝘴 𝘞𝘰𝘶𝘭𝘥 𝘣𝘦 𝘈𝘸𝘦𝘴𝘰𝘮𝘦♡...</s>"
-    if imdb and imdb.get('poster'):
-        try:
-            hehe = await message.reply_photo(photo=imdb.get('poster'), caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(86400)
-            await hehe.delete()
-            await message.delete()
-        except (MediaEmpty, PhotoInvalidDimensions, WebpageMediaEmpty):
-            pic = imdb.get('poster')
-            poster = pic.replace('.jpg', "._V1_UX360.jpg")
-            hmm = await message.reply_photo(photo=poster, caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(86400)
-            await hmm.delete()
-            await message.delete()
-        except Exception as e:
-            logger.exception(e)
-            fek = await message.reply_photo(photo="https://telegra.ph/file/2647d5d2771b80e493779.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-            await asyncio.sleep(86400)
-            await fek.delete()
-            await msg.delete()
-    else:
-        fuk = await message.reply_photo(photo="https://telegra.ph/file/2647d5d2771b80e493779.jpg", caption=cap, reply_to_message_id=reply_id, reply_markup=InlineKeyboardMarkup(btn))
-        await asyncio.sleep(86400)
-        await fuk.delete()
-        await msg.delete()
-    if spoll:
-        await msg.message.delete()
-        
-        
-
-async def advantage_spell_chok(msg):
-    query = re.sub(r"\b(pl(i|e)*?(s|z+|ease|se|ese|(e+)s(e)?)|((send|snd|giv(e)?|gib)(\sme)?)|movie(s)?|new|latest|br((o|u)h?)*|^h(e|a)?(l)*(o)*|mal(ayalam)?|t(h)?amil|file|that|find|und(o)*|kit(t(i|y)?)?o(w)?|thar(u)?(o)*w?|kittum(o)*|aya(k)*(um(o)*)?|full\smovie|any(one)|with\ssubtitle(s)?)", "", msg.text, flags=re.IGNORECASE) # plis contribute some common words 
-    query = query.strip() + " movie"
-    search = msg.text
-    g_s = await search_gagala(query)
-    g_s += await search_gagala(msg.text)
-    gs_parsed = []
-    if not g_s:
-        k = await msg.reply(f"Hey, {msg.from_user.mention}! I couldn't find any movie in that name.")
-        await asyncio.sleep(8)
-        await k.delete()
-        return
-    regex = re.compile(r".*(imdb|wikipedia).*", re.IGNORECASE) # look for imdb / wiki results
-    gs = list(filter(regex.match, g_s))
-    gs_parsed = [re.sub(r'\b(\-([a-zA-Z-\s])\-\simdb|(\-\s)?imdb|(\-\s)?wikipedia|\(|\)|\-|reviews|full|all|episode(s)?|film|movie|series)', '', i, flags=re.IGNORECASE) for i in gs]
-    if not gs_parsed:
-        reg = re.compile(r"watch(\s[a-zA-Z0-9_\s\-\(\)]*)*\|.*", re.IGNORECASE) # match something like Watch Niram | Amazon Prime 
-        for mv in g_s:
-            match  = reg.match(mv)
-            if match:
-                gs_parsed.append(match.group(1))
-    user = msg.from_user.id if msg.from_user else 0
-    movielist = []
-    gs_parsed = list(dict.fromkeys(gs_parsed)) # removing duplicates https://stackoverflow.com/a/7961425
-    if len(gs_parsed) > 3:
-        gs_parsed = gs_parsed[:3]
-    if gs_parsed:
-        for mov in gs_parsed:
-            imdb_s = await get_poster(mov.strip(), bulk=True) # searching each keyword in imdb
-            if imdb_s:
-                movielist += [movie.get('title') for movie in imdb_s]
-    movielist += [(re.sub(r'(\-|\(|\)|_)', '', i, flags=re.IGNORECASE)).strip() for i in gs_parsed]
-    movielist = list(dict.fromkeys(movielist)) # removing duplicates
-    if not movielist:
-        hmm = InlineKeyboardMarkup(
-        [
-            [
-                 InlineKeyboardButton("🕵️‍♂️ Search On Google 🕵️‍♂️", url=f"https://google.com/search?q={search}")
-            ]
-        ]
-    )
-        k = await msg.reply(f"Hey, {msg.from_user.mention}!.. Your word <b>{search}</b> is No Movie/Series Related to the Given Word Was Found 🥺\n\n<s>Please Go to Google and Confirm the Correct Spelling 🥺🙏</s>", reply_markup=hmm)
-        await asyncio.sleep(60)
-        await k.delete()
-        return
-    SPELL_CHECK[msg.message_id] = movielist
-    btn = [[
-                InlineKeyboardButton(
-                    text=movie.strip(),
-                    callback_data=f"spolling#{user}#{k}",
-                )
-            ] for k, movie in enumerate(movielist)]
-    btn.append([InlineKeyboardButton(text="✗ Close ✗", callback_data=f'spolling#{user}#close_spellcheck')])
-    m = await msg.reply(f"Hey, {msg.from_user.mention}!\nI couldn't find anything related to that\nDid you mean any one of these?", reply_markup=InlineKeyboardMarkup(btn))
-    await asyncio.sleep(20)
-    await m.delete()
+        jar = await db.get_ban_status(k.id)
+        if not jar['is_banned']:
+            return await message.reply(f"{k.mention} is not yet banned.")
+        await db.remove_ban(k.id)
+        temp.BANNED_USERS.remove(k.id)
+        await message.reply(f"Successfully unbanned {k.mention}")
 
 
-async def manual_filters(client, message, text=False):
-    group_id = message.chat.id
-    name = text or message.text
-    reply_id = message.reply_to_message.message_id if message.reply_to_message else message.message_id
-    keywords = await get_filters(group_id)
-    for keyword in reversed(sorted(keywords, key=len)):
-        pattern = r"( |^|[^\w])" + re.escape(keyword) + r"( |$|[^\w])"
-        if re.search(pattern, name, flags=re.IGNORECASE):
-            reply_text, btn, alert, fileid = await find_filter(group_id, keyword)
+    
+@Client.on_message(filters.command('users') & filters.user(ADMINS))
+async def list_users(bot, message):
+    # https://t.me/Josprojects/
+    raju = await message.reply('Getting List Of Users')
+    users = await db.get_all_users()
+    out = "Users Saved In DB Are:\n\n"
+    async for user in users:
+        out += f"<a href=tg://user?id={user['id']}>{user['name']}</a>"
+        if user['ban_status']['is_banned']:
+            out += '( Banned User )'
+        out += '\n'
+    try:
+        await raju.edit_text(out)
+    except MessageTooLong:
+        with open('users.txt', 'w+') as outfile:
+            outfile.write(out)
+        await message.reply_document('users.txt', caption="List Of Users")
 
-            if reply_text:
-                reply_text = reply_text.replace("\\n", "\n").replace("\\t", "\t")
-
-            if btn is not None:
-                try:
-                    if fileid == "None":
-                        if btn == "[]":
-                            await client.send_message(group_id, reply_text, disable_web_page_preview=True, reply_to_message_id=reply_id)
-                        else:
-                            button = eval(btn)
-                            await client.send_message(
-                                group_id, 
-                                reply_text,
-                                disable_web_page_preview=True,
-                                reply_markup=InlineKeyboardMarkup(button),
-                                reply_to_message_id = reply_id
-                            )
-                    elif btn == "[]":
-                        await client.send_cached_media(
-                            group_id,
-                            fileid,
-                            caption=reply_text or "",
-                            reply_to_message_id = reply_id
-                        )
-                    else:
-                        button = eval(btn) 
-                        await message.reply_cached_media(
-                            fileid,
-                            caption=reply_text or "",
-                            reply_markup=InlineKeyboardMarkup(button),
-                            reply_to_message_id = reply_id
-                        )
-                except Exception as e:
-                    logger.exception(e)
-                break
-    else:
-        return False
+@Client.on_message(filters.command('chats') & filters.user(ADMINS))
+async def list_chats(bot, message):
+    raju = await message.reply('Getting List Of chats')
+    chats = await db.get_all_chats()
+    out = "Chats Saved In DB Are:\n\n"
+    async for chat in chats:
+        out += f"**Title:** `{chat['title']}`\n**- ID:** `{chat['id']}`"
+        if chat['chat_status']['is_disabled']:
+            out += '( Disabled Chat )'
+        out += '\n'
+    try:
+        await raju.edit_text(out)
+    except MessageTooLong:
+        with open('chats.txt', 'w+') as outfile:
+            outfile.write(out)
+        await message.reply_document('chats.txt', caption="List Of Chats")
