@@ -1,6 +1,6 @@
 {
-    "name": "telegram movie bot",
-    "description": "When you going to send file on telegram channel this bot will save that in database, So you can search that easily in inline mode",
+    "name": "NGC-PRO-FILTER",
+    "description": "ഒന്നുകിൽ റെഡി ആകും അല്ലേൽ മൂഞ്ചും😂",
     "stack": "container",
     "keywords": [
       "telegram",
@@ -15,8 +15,8 @@
       "index",
       "inline"
     ],
-    "website": "https://github.com/VIBEFLiX/ngc_muthmani",
-    "repository": "https://github.com/VIBEFLiX/ngc_muthmani",
+    "website": "https://github.com/Ashik231/NGC-PRO-FILTER",
+    "repository": "https://github.com/Ashik231/NGC-PRO-FILTER",
     "env": {
         "BOT_TOKEN": {
             "description": "Your Bot Token. Get from @BotFather.",
