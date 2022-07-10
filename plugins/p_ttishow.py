@@ -37,17 +37,17 @@ async def save_group(bot, message):
             await bot.leave_chat(message.chat.id)
             return
         buttons = [[
-            InlineKeyboardButton('HELP', url=f"https://t.me/{temp.U_NAME}?start=help"),
-            InlineKeyboardButton('OWNER', url='https://t.me/iam_digin')
+            InlineKeyboardButton('✆𝘏𝘦𝘭𝘱✆', url=f"https://t.me/{temp.U_NAME}?start=help"),
+            InlineKeyboardButton('⌥𝘖𝘸𝘯𝘦𝘳⌥', url='https://t.me/Unavailable4allTime')
         ]]
         reply_markup=InlineKeyboardMarkup(buttons)
         await message.reply_text(
-            text=f"<b>Thankyou For Adding Me In {message.chat.title} ❣️\n\nIf you have any questions & doubts about using me contact support.</b>",
+            text=f"<b>𝘛𝘩𝘢𝘯𝘬 𝘠𝘰𝘶 𝘍𝘰𝘳 𝘢𝘥𝘥𝘪𝘯𝘨 𝘔𝘦 𝘪𝘯 {message.chat.title} ❣️\n\n𝘐𝘧 𝘠𝘰𝘶 𝘏𝘢𝘷𝘦 𝘈𝘯𝘺 𝘋𝘰𝘶𝘣𝘵𝘴 𝘊𝘰𝘯𝘵𝘢𝘤𝘵 𝘔𝘺 𝘖𝘸𝘯𝘦𝘳...</b>",
             reply_markup=reply_markup)
     else:
         for u in message.new_chat_members:
             zaute = [[
-            InlineKeyboardButton('𝘽𝙊𝙨𝙎', url="https://t.me/iam_digin")
+            InlineKeyboardButton('⇘മുതലാളി⇙', url="https://t.me/Unavailable4allTime")
         ]]
             if (temp.MELCOW).get('welcome') is not None:
                 try:
@@ -55,7 +55,7 @@ async def save_group(bot, message):
                 except:
                     pass
             temp.MELCOW['welcome'] = await message.reply_text(
-            text=f"<b>👋 Hi! {u.mention},</b> Welcome to <b>{message.chat.title}</b>\n\n<b>YOUR LISTED MOVIES AVAILABLE HERE, IF YOU DIDN'T GET ASK THE 𝘽𝙊𝙨𝙎,</b>
+            text=f"<b>👋 𝘏𝘪!.. {u.mention},</b> 𝘞𝘦𝘭𝘤𝘰𝘮𝘦 𝘵𝘰 <b>{message.chat.title}</b>\n\n<b>അങ്ങനെ അവസാനം നിങ്ങൾ എത്തേണ്ട സ്ഥലത്തുതന്നെയാണ് എത്തിയിരിക്കുന്നത്😉,ഇവിടെ നിങ്ങൾക്ക് വേണ്ട എല്ലാ സിനിമയും കിട്ടും, അങ്ങനെ കിട്ടുന്നില്ലെങ്കിൽ താഴെ മുതലാളിയെ mention ചെയ്തിട്ടുണ്ട്,ചോദിച്ചാൽ മതി കിട്ടും👍</b>
 
 
                 </b>",
