@@ -254,7 +254,7 @@ def last_online(from_user):
     elif from_user.status == 'within_month':
         time += "Within the last month"
     elif from_user.status == 'long_time_ago':
-        time += "A long time ago :("
+        time += "A long Time ago :("
     elif from_user.status == 'online':
         time += "Currently Online"
     elif from_user.status == 'offline':
